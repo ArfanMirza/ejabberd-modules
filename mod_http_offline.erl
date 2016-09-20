@@ -33,8 +33,8 @@ stop (_Host) ->
 
 create_message(_From, _To, Packet) ->
 		Type = xml:get_tag_attr_s("type", Packet),
-		FromS = xml:get_tag_attr_s("from", Packet),
-		ToS = xml:get_tag_attr_s("to", Packet),
+		FromS = _From#jid.luser,
+		ToS = _To#jid.luser,
 		Body = xml:get_path_s(Packet, [{elem, "body"}, cdata]),
 		if (Type == "chat") ->
 			post_offline_message(FromS, ToS, Body)
@@ -43,8 +43,13 @@ create_message(_From, _To, Packet) ->
 
 
 post_offline_message(From, To, Body) ->
-		?INFO_MSG("Posting From ~p To ~p Body ~p~n",[From, To, Body]),
-		 http:request(post, {"http://localhost/OfflineDemoWebhost/Message/Process",[], 
-		 "application/x-www-form-urlencoded",
-		 lists:concat(["From=", From,"&To=", To,"&Body=", Body])}, [], []),
+         ?INFO_MSG("Posting From ~p To ~p Body ~p~n",[From, To, Body]),
+            Sep = "&",
+          Post = [
+            "from=", From, Sep,
+            "to=", To, Sep,
+            "body=", Body ],
+         httpc:request(post, {"[URL]",[],
+         "application/x-www-form-urlencoded",
+          list_to_binary(Post)}, [], []),
 		?INFO_MSG("post request sent", []).
